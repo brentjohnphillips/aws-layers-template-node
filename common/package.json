@@ -1,0 +1,12 @@
+{
+  "name": "common",
+  "version": "1.0.0",
+  "description": "",
+  "dependencies": {
+    "aws-sdk": "^2.910.0"
+  },
+  "devDependencies": {
+    "aws-sdk-mock": "^4.0.0",
+    "jest": "^27.0.4"
+  }
+}

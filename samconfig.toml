@@ -1,0 +1,9 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "aws-layers-template-node"
+s3_bucket = "<<S3_BUCKET>>"
+s3_prefix = "aws-layers-template-node"
+region = "us-west-2"
+capabilities = "CAPABILITY_IAM"

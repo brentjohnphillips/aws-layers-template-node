@@ -1,0 +1,76 @@
+{
+    "configurations": [
+        {
+            "type": "aws-sam",
+            "request": "direct-invoke",
+            "name": "API node-lambda-test:GetAllItemsFunction",
+            "lambda": {
+                "payload": {},
+                "environmentVariables": {
+                    "DYNAMO_TABLE": "StorageTable"
+                }
+            },
+            "invokeTarget": {
+                "target": "api",
+                "templatePath": "${workspaceFolder}/template.yaml",
+                "logicalId": "GetAllItemsFunction"                
+            },
+            "api": {
+                "path": "/GetAllItems",
+                "httpMethod": "get",                
+                "payload": {
+                    "json": {}
+                }
+            }
+        },
+        {
+            "type": "aws-sam",
+            "request": "direct-invoke",
+            "name": "API node-lambda-test:GetTestItemFunction",
+            "lambda": {
+                "payload": {},
+                "environmentVariables": {
+                    "DYNAMO_TABLE": "StorageTable"
+                }
+            },
+            "invokeTarget": {
+                "target": "api",
+                "templatePath": "${workspaceFolder}/template.yaml",
+                "logicalId": "GetTestItemFunction"
+            },
+            "api": {
+                "path": "/GetTestItem",
+                "httpMethod": "get",
+                "payload": {
+                    "json": {}
+                }
+            }
+        },
+        {
+            "name": "Attach to GetAllItemsFunction",
+            "type": "node",
+            "request": "attach",
+            "address": "localhost",
+            "port": 9999,
+            "localRoot": "${workspaceRoot}/handlers/get_all_items",
+            "remoteRoot": "/var/task",
+            "protocol": "inspector",
+            "stopOnEntry": false,
+            "sourceMaps": true,
+            "smartStep": true
+        },
+        {
+            "name": "Attach to GetTestItemFunction",
+            "type": "node",
+            "request": "attach",
+            "address": "localhost",
+            "port": 9999,
+            "localRoot": "${workspaceRoot}/handlers/get_test_item",
+            "remoteRoot": "/var/task",
+            "protocol": "inspector",
+            "stopOnEntry": false,
+            "sourceMaps": true,
+            "smartStep": true
+        }
+    ]
+}

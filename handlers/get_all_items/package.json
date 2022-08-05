@@ -1,0 +1,17 @@
+{
+  "name": "get_all_items",
+  "version": "1.0.0",
+  "description": "Lambda to grab all items from dynamodb table",
+  "dependencies": {
+    "aws-sdk": "^2.910.0"
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "/opt/(.*)": "<rootDir>/common/$1"
+    }
+  },
+  "devDependencies": {
+    "aws-sdk-mock": "^4.0.0",
+    "jest": "^27.0.4"
+  }
+}

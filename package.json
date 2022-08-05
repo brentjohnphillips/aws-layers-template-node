@@ -1,0 +1,17 @@
+{
+  "name": "aws-layers-template-node",
+  "version": "1.0.0",
+  "description": "Example of AWS Lambda using layers for common code, deployed using cloudformation",
+  "scripts": {
+    "test": "jest --coverage"
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "/opt/(.*)": "<rootDir>/common/$1"
+    }
+  },
+  "devDependencies": {
+    "aws-sdk-mock": "^4.0.0",
+    "jest": "^27.0.4"
+  }
+}

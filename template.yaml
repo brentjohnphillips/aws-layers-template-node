@@ -1,0 +1,144 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Example of AWS Lambda using layers for common code, deployed using cloudformation  
+Globals:
+  Function:
+    Timeout: 3
+    Runtime: nodejs14.x
+    Environment:
+      Variables:
+        SAMPLE_TABLE: !Ref DynamoDbTable
+        AWS: true
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: aws-layers-template-node
+    Description: Example of AWS Lambda using layers for common code, deployed using cloudformation
+    Author: Brent Phillips
+    ReadmeUrl: README.md
+    Labels: ['tests']
+    HomePageUrl: https://github.com/bphillips809/aws-layers-template-node
+    SemanticVersion: 0.0.5
+    SourceCodeUrl: https://github.com/bphillips809/aws-layers-template-node
+    
+Resources:
+  layersTemplateRole:
+    Type: "AWS::IAM::Role"  
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "states.amazonaws.com"
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Path: "/"
+
+  layersTemplatePolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyName: "layers-template-policy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:      
+          -
+            Effect: "Allow"
+            Action: "logs:*"
+            Resource: "*"
+          -
+            Effect: "Allow"
+            Action: "lambda:InvokeFunction"
+            Resource:
+              - !GetAtt [ GetAllItemsFunction, Arn ]
+              - !GetAtt [ GetTestItemFunction, Arn ]
+          -
+            Effect: "Allow"
+            Action: "dynamodb:*"
+            Resource:
+              - !GetAtt [ GetAllItemsFunction, Arn ]
+              - !GetAtt [ GetTestItemFunction, Arn ]
+          -
+            Effect: "Allow"
+            Action:
+                - dynamodb:DescribeTable
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+                - dynamodb:BatchWriteItem
+            Resource:
+              - !GetAtt [ DynamoDbTable, Arn ]
+      Roles:
+        -
+          Ref: "layersTemplateRole"
+  
+  GetAllItemsFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: handlers/get_all_items/
+      Handler: index.lambdaHandler
+      Role: !GetAtt [layersTemplateRole, Arn]
+      Layers:
+        - !Ref CommonLayer
+      Events:
+        GetItemsApi:
+          Type: Api 
+          Properties:
+            Path: /GetAllItems
+            Method: get            
+      Environment:
+        Variables:          
+          region: !Ref "AWS::Region"       
+          DYNAMO_TABLE: !Ref DynamoDbTable
+  GetTestItemFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: handlers/get_test_item/
+      Handler: index.lambdaHandler
+      Role: !GetAtt [layersTemplateRole, Arn]
+      Layers:
+        - !Ref CommonLayer
+      Events:
+        GetItemsApi:
+          Type: Api 
+          Properties:
+            Path: /GetTestItem
+            Method: get            
+      Environment:
+        Variables:          
+          region: !Ref "AWS::Region"       
+          DYNAMO_TABLE: !Ref DynamoDbTable  
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+        LayerName: common-dependencies
+        Description: Common dependencies
+        ContentUri: common/
+  DynamoDbTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: StorageTable
+      PrimaryKey:
+        Name: id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+
+  ServiceEndpoint:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/"
+
+

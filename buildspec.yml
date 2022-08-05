@@ -1,0 +1,34 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+        nodejs: 14 
+    commands:      
+      # Install all dependencies (including dependencies for running tests)
+      - npm install 
+      - cd $CODEBUILD_SRC_DIR/common/utils && npm install 
+      - cd $CODEBUILD_SRC_DIR/handlers/get_all_items && npm install
+      - cd $CODEBUILD_SRC_DIR/handlers/get_test_item && npm install       
+  pre_build:
+    commands:
+      - cd $CODEBUILD_SRC_DIR/
+      # Lint
+      - npm run lint
+      # Run all unit tests
+      - npm run test
+      # Remove tests folder to reduce size
+      - rm -rf ./tests
+      # Remove all dependencies not needed for deployment (devDependencies)
+      - npm prune --production
+      - cd $CODEBUILD_SRC_DIR/common/utils && npm prune --production
+      - cd $CODEBUILD_SRC_DIR/handlers/get_all_items && npm prune --production
+      - cd $CODEBUILD_SRC_DIR/handlers/get_test_item && npm prune --production
+  build:
+    commands:
+      - cd $CODEBUILD_SRC_DIR/
+      # Use AWS SAM to package the application by using AWS CloudFormation
+      - aws cloudformation package --debug --template $INPUT_FILE --s3-bucket $S3_BUCKET --s3-prefix $APP_NAME --output-template post-template.yaml
+artifacts:
+  type: zip
+  files:
+    - post-template.yaml
